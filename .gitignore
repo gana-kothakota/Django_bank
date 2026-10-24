@@ -1,0 +1,21 @@
+.vscode/
+.idea/
+.DS_Store
+*.pyc
+__pycache__/
+
+# Environments
+api/env/
+api/venv/
+api/.venv/
+
+# Environment variables & secrets
+api/.envs/*
+!api/.envs/.env.example
+
+# Database & logs
+api/db.sqlite3
+api/*.sqlite3
+api/logs/
+api/*.log
+api/staticfiles/
