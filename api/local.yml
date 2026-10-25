@@ -1,0 +1,57 @@
+services:
+  api: &api
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    volumes:
+      - .:/app:z
+      - ./staticfiles:/app/staticfiles
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.envs/.env.local
+    environment:
+      - POSTGRES_HOST=postgres
+    depends_on:
+      - postgres
+      - mailpit
+    command: /start.sh
+    networks:
+      - banker_local_nw
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./docker/local/postgres/Dockerfile
+    volumes:
+      - banker_postgres_db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./.envs/.env.local
+    networks:
+      - banker_local_nw
+
+  mailpit:
+    image: docker.io/axllent/mailpit:v1.20.3
+    container_name: banker_mailpit
+    networks:
+      - banker_local_nw
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    volumes:
+      - banker_mailpit_db:/data
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATA_FILE: /data/mail.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+networks:
+  banker_local_nw:
+    external: true
+
+volumes:
+  banker_mailpit_db:
+  banker_postgres_db:

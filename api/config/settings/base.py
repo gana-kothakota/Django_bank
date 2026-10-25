@@ -12,7 +12,7 @@ local_env_file = path.join(BASE_DIR, ".envs", ".env.local")
 
 
 if path.isfile(local_env_file):
-    load_dotenv(local_env_file, override=True)
+    load_dotenv(local_env_file, override=False)
 
 
 # Application definition
