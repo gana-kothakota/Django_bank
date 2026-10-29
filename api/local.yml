@@ -6,8 +6,10 @@ services:
     volumes:
       - .:/app:z
       - ./staticfiles:/app/staticfiles
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
+    expose:
+        - "8000"
     env_file:
       - ./.envs/.env.local
     environment:
@@ -15,6 +17,9 @@ services:
     depends_on:
       - postgres
       - mailpit
+      - redis
+      - rabbitmq
+      - celerybeat
     command: /start.sh
     networks:
       - banker_local_nw
@@ -48,6 +53,63 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
+  redis:
+    image: redis:7.4.1-alpine3.19
+    command: redis-server --appendonly yes
+    networks: 
+        - banker_local_nw
+  rebbitmq:
+    image: rebbitmq:3-management
+    ports:
+        - "5672:5672"
+        - "15672:15672"
+    volumes:
+        - rebbitmq_data:/var/lib/rabbitmq
+        - rebbitmq_logs:/var/log/rabbitmq
+    networks:
+        - banker_local_nw
+
+  celeryworker:
+    <<: *api 
+    command: /start-celeryworker.sh
+    
+  flower:
+    <<: *api 
+    ports: 
+      - "5555:5555"
+    volumes:
+      - flower_db:/app 
+    command: /start-flower.sh 
+
+  celerybeat:
+    build: 
+      context: .  
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start-celerybeat.sh  
+    env_file:
+        - ./.envs/.env.local
+    depend_on:
+        - rabbitmq
+        - redis
+        - postgres
+    networks: 
+        - banker_local_nw
+    
+  nginx:
+    build:
+      context: ./docker/local/nginx
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./staticfiles:/app/staticfiles
+      - logs_store:/var/log/nginx
+    depends_on:
+      - api
+    networks:
+      - banker_local_nw
+
 networks:
   banker_local_nw:
     external: true
@@ -55,3 +117,7 @@ networks:
 volumes:
   banker_mailpit_db:
   banker_postgres_db:
+  logs_store:
+  rabbitmq_data:
+  rabbitmq_logs:
+  flower_db:  
