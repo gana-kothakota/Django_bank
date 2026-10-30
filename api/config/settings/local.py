@@ -20,7 +20,7 @@ ADMIN_URL = getenv("ADMIN_URL")
 EMAIL_BACKEND = "djcelery_email.backends.CeleryEmailBackend" 
 EMAIL_HOST = getenv("EMAIL_HOST")
 EMAIL_PORT = getenv("EMAIL_PORT")
-DEFAULT_FROM_EMAIL = "[EMAIL_ADDRESS]" 
+DEFAULT_FROM_EMAIL = getenv("DEFAULT_FROM_EMAIL", "NextGen Bank <noreply@nextgenbank.com>") 
 DOMAIN = getenv("DOMAIN")
 
 MAX_UPLOAD_SIZE = 1* 1024 * 1024

@@ -54,32 +54,32 @@ services:
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
   redis:
-    image: redis:7.4.1-alpine3.19
+    image: redis:7-alpine
     command: redis-server --appendonly yes
     networks: 
         - banker_local_nw
-  rebbitmq:
-    image: rebbitmq:3-management
+  rabbitmq:
+    image: rabbitmq:3-management
     ports:
         - "5672:5672"
         - "15672:15672"
     volumes:
-        - rebbitmq_data:/var/lib/rabbitmq
-        - rebbitmq_logs:/var/log/rabbitmq
+        - rabbitmq_data:/var/lib/rabbitmq
+        - rabbitmq_logs:/var/log/rabbitmq
     networks:
         - banker_local_nw
 
   celeryworker:
     <<: *api 
-    command: /start-celeryworker.sh
+    command: watchfiles --filter python celery.__main__.main --args "-A config.celery_app worker -l INFO -E"
     
   flower:
     <<: *api 
     ports: 
       - "5555:5555"
     volumes:
-      - flower_db:/app 
-    command: /start-flower.sh 
+      - flower_db:/data 
+    command: celery -A config.celery_app -b "amqp://rabbitmq" flower --basic_auth="admin:pass123456" --broker_api="http://guest:guest@rabbitmq:15672/api/" 
 
   celerybeat:
     build: 
@@ -88,7 +88,7 @@ services:
     command: /start-celerybeat.sh  
     env_file:
         - ./.envs/.env.local
-    depend_on:
+    depends_on:
         - rabbitmq
         - redis
         - postgres

@@ -1,10 +1,24 @@
-from rest_framework.fields import ReadOnlyField
 from django.contrib import admin
 from .models import ContentView
 from typing import Any
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy as _
+
+
+class ContentViewInline(GenericTabularInline):
+    model = ContentView
+    extra = 0
+    readonly_fields = [
+        "user",
+        "viewer_ip",
+        "last_viewed",
+        "created_at",
+    ]
+    can_delete = True
+
+    def has_add_permission(self, request: HttpRequest, obj: Any = None) -> bool:
+        return False
 
 
 @admin.register(ContentView)
@@ -48,14 +62,11 @@ class ContentViewAdmin(admin.ModelAdmin):
                     "content_type",
                     "object_id",
                     "content_object",
-                    "user",
-                    "viewer_ip",
-                    "last_viewed",
                 )
             },
         ),
         (
-            _("view Data"),
+            _("View Data"),
             {
                 "fields": (
                     "user",
@@ -65,7 +76,7 @@ class ContentViewAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "TimeStamp",
+            _("Timestamps"),
             {
                 "fields": (
                     "created_at",
@@ -82,17 +93,3 @@ class ContentViewAdmin(admin.ModelAdmin):
         self, request: HttpRequest, obj: ContentView = None
     ) -> bool:
         return False
-
-    class ContentViewInline(GenericTabularInline):
-        model = ContentView
-        extra = 0
-        readonly_fields = [
-            "user",
-            "viewer_ip",
-            "last_viewed",
-            "created_at",
-        ]
-        can_delete = True
-
-        def has_add_permission(self, request: HttpRequest) -> bool:
-            return True

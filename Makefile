@@ -1,4 +1,4 @@
-.PHONY: help build up up-build down down-v restart ps logs logs-api logs-db logs-mail makemigrations migrate superuser collectstatic shell dbshell black black-check black-diff clean
+.PHONY: help build up up-build down down-v restart ps logs logs-api logs-db logs-mail makemigrations migration migrations migrate superuser collectstatic shell dbshell black black-check black-diff clean
 
 ifneq ("$(wildcard local.yml)","")
 DC := docker compose -f local.yml
@@ -65,6 +65,9 @@ logs-mail:
 
 makemigrations:
 	$(DC) exec api python manage.py makemigrations
+
+migration: makemigrations
+migrations: makemigrations
 
 migrate:
 	$(DC) exec api python manage.py migrate

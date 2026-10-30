@@ -3,7 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from os import getenv, path
 from loguru import logger
-from datetime import timedelta
+from datetime import timedelta, date
 import cloudinary
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -147,8 +147,56 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "user_auth.User"
 
+DEFAULT_BIRTH_DATE = date(1900, 1, 1)
+DEFAULT_DATE = date(2000, 1, 1)
+DEFAULT_EXPIRY_DATE = date(2099, 12, 31)
+DEFAULT_COUNTRY = "NG"
+DEFAULT_PHONENUMBER = "+2348000000000"
+
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "core_apps.common.cookie_auth.CookieAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_FILTER_BACKENDS": (
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ),
+    "PAGE_SIZE": 10,
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/day",
+        "user": "100/day",
+    },
+}
+
+SIMPLE_JWT = {
+    "SIGNING_KEY": getenv("SIGNING_KEY"),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "ROTATE_REFRESH_TOKEN": True,
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
+
+DJOSER = {
+    "USER_ID_FIELD": "id",
+    "LOGIN_FIELD": "email",
+    "TOKEN_MODEL": None,
+    "USER_CREATE_PASSWORD_RETYPE": True,
+    "SEND_ACTIVATION_EMAIL": True,
+    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    "PASSWORD_RESET_CONFIRM_RETYPE": True,
+    "ACTIVATION_URL": "activate/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "password-reset/{uid}/{token}",
+    "SERIALIZERS": {
+        "USER_CREATE": "core_apps.user_auth.serializers.UserCreateSerializer",
+    },
 }
 
 SPECTACULAR_SETTINGS = {
@@ -164,30 +212,40 @@ SPECTACULAR_SETTINGS = {
 }
 
 if USE_TZ:
-    CELERY_TIMEZONE =TIME_ZONE 
+    CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = getenv("CELERY_BROKER_URL")
-CELERY_RESULT_BACKEND =getenv("CELERY_RESULT_BACKEND")
+CELERY_RESULT_BACKEND = getenv("CELERY_RESULT_BACKEND")
 CELERY_ACCEPT_CONTENT = ["application/json"]
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND_MAX_RETRIES = 10  
-CELERY_TASK_SEND_SENT_EVENT =True 
-CELERY_RESULT_EXTENDED = True 
-CELERY_RESULT_BACKEND_ALWAYS_RETRY =True 
-CELERY_TASK_TIME_LIMIT = 5*60 
-CELERY_TASK_SOFT_TIME_LIMIT = 60 
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_RESULT_BACKEND_MAX_RETRIES = 10
+CELERY_TASK_SEND_SENT_EVENT = True
+CELERY_RESULT_EXTENDED = True
+CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
+CELERY_TASK_TIME_LIMIT = 5 * 60
+CELERY_TASK_SOFT_TIME_LIMIT = 60
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
 CELERY_WORKER_SEND_TASK_EVENTS = True
 
-CLOUDINARY_CLOUD_NAME=getenv("CLOUDINARY_CLOUD_NAME")
-CLOUDINARY_API_KEY=getenv("CLOUDINARY_API_KEY")
-CLOUDINARY_API_SECRET=getenv("CLOUDINARY_API_SECRET")
+CLOUDINARY_CLOUD_NAME = getenv("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = getenv("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = getenv("CLOUDINARY_API_SECRET")
 
 cloudinary.config(
     cloud_name=CLOUDINARY_CLOUD_NAME,
     api_key=CLOUDINARY_API_KEY,
     api_secret=CLOUDINARY_API_SECRET,
 )
+
+COOKIE_NAME = "access"
+
+COOKIE_SAMESITE = "Lax"
+
+COOKIE_PATH = "/"
+
+COOKIE_HTTPONLY = True
+
+COOKIE_SECURE = getenv("COOKIE_SECURE", "True") == "True"
 
 LOGGING_CONFIG = "logging.config.dictConfig"
 
